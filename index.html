@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+720OCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -370,6 +370,21 @@
             cursor: pointer;
             transition: all 0.2s;
             text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 80px;
+        }
+
+        .checkbox-card input[type="checkbox"] {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+            top: 0;
+            left: 0;
         }
 
         .checkbox-card:hover {
@@ -700,6 +715,26 @@
             }
         }
     </style>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script>
+        // Firebase config - REPLACE WITH YOUR CONFIG
+        const firebaseConfig = {
+            apiKey: "AIzaSyDyCdbO2HVQ8dw0JLTnIG-CmsSPIitLk2w",
+            authDomain: "database-3c5ae.firebaseapp.com",
+            databaseURL: "https://database-3c5ae-default-rtdb.firebaseio.com",
+            projectId: "database-3c5ae",
+            storageBucket: "database-3c5ae.firebasestorage.app",
+            messagingSenderId: "632282754039",
+            appId: "1:632282754039:web:ecb7fa87e3395f5b491cf2"
+        };
+        
+        // Initialize Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+    </script>
 </head>
 <body>
     <!-- Header -->
@@ -1046,19 +1081,25 @@
         // Listen for quantity changes
         quantityInput.addEventListener('input', calculateTotal);
 
-        // Checkbox visual update
+        // Checkbox visual update - size
         document.querySelectorAll('#sizeGroup .checkbox-card').forEach(card => {
             const cb = card.querySelector('input');
             // Set initial state
             if (cb.checked) card.classList.add('selected');
             
-            // Click handler
-            card.addEventListener('click', function(e) {
-                if (e.target.tagName !== 'INPUT') {
-                    cb.checked = !cb.checked;
-                }
+            // Change handler
+            cb.addEventListener('change', function() {
                 card.classList.toggle('selected', cb.checked);
                 calculateTotal();
+            });
+        });
+
+        // Checkbox visual update - model
+        document.querySelectorAll('#modelGroup .checkbox-card').forEach(card => {
+            const cb = card.querySelector('input');
+            if (cb.checked) card.classList.add('selected');
+            cb.addEventListener('change', function() {
+                card.classList.toggle('selected', cb.checked);
             });
         });
 
@@ -1094,10 +1135,15 @@
                 date: new Date().toISOString()
             };
 
-            // Save to localStorage
+            // Save to localStorage (backup)
             const orders = JSON.parse(localStorage.getItem('orders') || '[]');
             orders.push(formData);
             localStorage.setItem('orders', JSON.stringify(orders));
+
+            // Save to Firebase
+            if (typeof firebase !== 'undefined') {
+                firebase.database().ref('orders').push(formData).catch(err => console.log('Firebase error:', err));
+            }
 
             // Show thank you
             document.getElementById('orderForm').style.display = 'none';
