@@ -230,26 +230,6 @@
             .header { flex-direction: column; gap: 12px; }
         }
     </style>
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-    <script>
-        // Firebase config - REPLACE WITH YOUR CONFIG
-        const firebaseConfig = {
-          apiKey: "AIzaSyDyCdbO2HVQ8dw0JLTnIG-CmsSPIitLk2w",
-          authDomain: "database-3c5ae.firebaseapp.com",
-          databaseURL: "https://database-3c5ae-default-rtdb.firebaseio.com",
-          projectId: "database-3c5ae",
-          storageBucket: "database-3c5ae.firebasestorage.app",
-          messagingSenderId: "632282754039",
-          appId: "1:632282754039:web:ecb7fa87e3395f5b491cf2"
-        };
-        
-        // Initialize Firebase
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-    </script>
 </head>
 <body>
     <!-- Login Screen -->
@@ -359,57 +339,14 @@
             document.getElementById('adminPassword').value = '';
         }
 
-        // Load orders from localStorage and Firebase
+        // Load orders from localStorage
         function loadOrders() {
-            // Load from localStorage (backup)
-            const localOrders = JSON.parse(localStorage.getItem('orders') || '[]');
-            
-            // Load from Firebase
-            if (typeof firebase !== 'undefined') {
-                firebase.database().ref('orders').once('value', function(snapshot) {
-                    const firebaseOrders = [];
-                    snapshot.forEach(function(childSnapshot) {
-                        firebaseOrders.push(childSnapshot.val());
-                    });
-                    
-                    // Merge local and Firebase orders (Firebase takes priority)
-                    const allOrders = [...localOrders, ...firebaseOrders];
-                    
-                    // Remove duplicates based on date and name
-                    const uniqueOrders = [];
-                    const seen = new Set();
-                    allOrders.forEach(o => {
-                        const key = o.date + o.name + o.phone;
-                        if (!seen.has(key)) {
-                            seen.add(key);
-                            uniqueOrders.push(o);
-                        }
-                    });
-                    
-                    orders = uniqueOrders.map((o, i) => ({...o, status: o.status || 'new', id: i}));
-                    saveOrders();
-                    filteredOrders = [...orders];
-                    updateStats();
-                    renderTable();
-                    populateWilayaFilter();
-                }).catch(function(err) {
-                    console.log('Firebase error, using localStorage:', err);
-                    orders = localOrders.map((o, i) => ({...o, status: o.status || 'new', id: i}));
-                    saveOrders();
-                    filteredOrders = [...orders];
-                    updateStats();
-                    renderTable();
-                    populateWilayaFilter();
-                });
-            } else {
-                // No Firebase, use localStorage only
-                orders = localOrders.map((o, i) => ({...o, status: o.status || 'new', id: i}));
-                saveOrders();
-                filteredOrders = [...orders];
-                updateStats();
-                renderTable();
-                populateWilayaFilter();
-            }
+            orders = JSON.parse(localStorage.getItem('orders') || '[]');
+            orders = orders.map((o, i) => ({...o, status: o.status || 'new', id: i}));
+            saveOrders();
+            filteredOrders = [...orders];
+            updateStats();
+            renderTable();
         }
 
         function saveOrders() {

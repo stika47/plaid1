@@ -715,25 +715,16 @@
             }
         }
     </style>
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <script>
-        // Firebase config - REPLACE WITH YOUR CONFIG
-        const firebaseConfig = {
-            apiKey: "AIzaSyDyCdbO2HVQ8dw0JLTnIG-CmsSPIitLk2w",
-            authDomain: "database-3c5ae.firebaseapp.com",
-            databaseURL: "https://database-3c5ae-default-rtdb.firebaseio.com",
-            projectId: "database-3c5ae",
-            storageBucket: "database-3c5ae.firebasestorage.app",
-            messagingSenderId: "632282754039",
-            appId: "1:632282754039:web:ecb7fa87e3395f5b491cf2"
-        };
-        
-        // Initialize Firebase
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
+        // === Telegram Bot Config ===
+        // 1. Go to @BotFather on Telegram, send /newbot
+        // 2. Choose a name and username
+        // 3. Copy the token and paste below
+        // 4. Send /start to your bot, then visit:
+        //    https://api.telegram.org/bot<TOKEN>/getUpdates
+        // 5. Copy your chat_id and paste below
+        const TELEGRAM_BOT_TOKEN = '8680231673:AAGJcxLieTtyn5G2kdIoW-ERdFD43OkLTs0';
+        const TELEGRAM_CHAT_ID = '6500788474';
     </script>
 </head>
 <body>
@@ -1140,9 +1131,26 @@
             orders.push(formData);
             localStorage.setItem('orders', JSON.stringify(orders));
 
-            // Save to Firebase
-            if (typeof firebase !== 'undefined') {
-                firebase.database().ref('orders').push(formData).catch(err => console.log('Firebase error:', err));
+            // Send notification to Telegram
+            const telegramMsg = `🛒 طلب جديد!
+الاسم: ${formData.name}
+الهاتف: ${formData.phone}
+الولاية: ${formData.wilayaName}
+الحجم: ${formData.sizes}
+الموديل: ${formData.models}
+الكمية: ${formData.quantity}
+المجموع: ${formData.total} DA`;
+
+            if (TELEGRAM_BOT_TOKEN !== 'YOUR_BOT_TOKEN_HERE') {
+                fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: TELEGRAM_CHAT_ID,
+                        text: telegramMsg,
+                        parse_mode: 'HTML'
+                    })
+                }).catch(err => console.error('Telegram error:', err));
             }
 
             // Show thank you
